@@ -47,7 +47,7 @@ void print_times(const struct options *opt, double *times, unsigned int len,
   } else if (opt->run_cpu) {
     mode = -1;
   }
-  printf("%s, %d, %d, %d, %d, %d", BUILD_VERSION, mode, opt->timesteps);
+  printf("%s, %d, %d ", BUILD_VERSION, mode, opt->timesteps);
   for (unsigned int i = 0; i < len; ++i) {
     printf(", %lf", times[i]);
   }

@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdbool.h>
 
-#define DataType float
+#define DataType double
 
 struct options {
   int Nx,Ny,Nz;

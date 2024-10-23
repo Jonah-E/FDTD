@@ -4,7 +4,7 @@ NVCCFLAGS += --offload-arch=gfx90a
 FLAGS += -D__HIP
 else
 NVCC = nvcc
-NVCCFLAGS += -arch=sm_80 -I/usr/local/cuda/include -L/usr/local/cuda/lib
+NVCCFLAGS += -I/usr/local/cuda/include -L/usr/local/cuda/lib
 endif
 
 SRC_DIR = src
@@ -15,7 +15,7 @@ C_FILES = host.c \
 	options.c \
 	utils.c
 
-CU_FILES = fdtd.cu
+CU_FILES = fdtd.cu device.cu
 
 OBJ_FILES = $(C_FILES:.c=_c.o) $(CU_FILES:.cu=_cu.o)
 OBJ_PATHS = $(addprefix $(OBJ_DIR)/, $(OBJ_FILES))
