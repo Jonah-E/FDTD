@@ -147,7 +147,7 @@ int cpu_kernel_run(fields_t *h_fields, int time_steps, int sample_freq) {
   };
 
   if (sample_freq > 0){
-    printf("tag,timestep");
+    printf("tag,timestep,dt");
     for (int i = 0; i < NR_SAMPLES; ++i){
       printf(",Ex_%d,Ey_%d,Ez_%d",i,i,i);
     }
@@ -158,7 +158,7 @@ int cpu_kernel_run(fields_t *h_fields, int time_steps, int sample_freq) {
 
     if (sample_freq > 0){
       if (i%sample_freq == 0){
-        printf("tag,%d",i);
+        printf("tag,%d,%.10e",i,h_fields->dt);
         for (int i = 0; i < NR_SAMPLES; ++i){
           int x,y,z;
           x = sample_loc[i][0];
