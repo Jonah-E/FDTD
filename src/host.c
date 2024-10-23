@@ -29,10 +29,18 @@ fields_t *host_setup(int Nx, int Ny, int Nz,
   gh_fields->Hy = (DataType *)calloc(Nx*(Ny+1)*Nz, sizeof(DataType));
   gh_fields->Hz = (DataType *)calloc(Nx*Ny*(Nz+1), sizeof(DataType));
 
+
+  for(int y = 0; y < Ny; ++y){
+    for(int z = 0; z < Nz; ++z){
+      printf("%f, ", gh_fields->Hx[5+y*Nx+z*Ny*Nz]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+
   gh_fields->Ex = (DataType *)calloc(Nx*(Ny+1)*(Nz+1), sizeof(DataType));
   gh_fields->Ey = (DataType *)calloc((Nx+1)*Ny*(Nz+1), sizeof(DataType));
   gh_fields->Ez = (DataType *)calloc((Nx+1)*(Ny+1)*Nz, sizeof(DataType));
-
 
   /* Init E field randomly. */
   generateRandVector(gh_fields->Ex, Nx*(Ny+1)*(Nz+1), 0, 0.1, seed);
@@ -47,6 +55,13 @@ fields_t *host_setup(int Nx, int Ny, int Nz,
     gh_fields->Ex[x + (Ny+1)*Nx + (Nz+1) * Nx * Ny] = 0;
   }
 
+
+  for(int y = 0; y < Ny+1; ++y){
+    for(int z = 0; z < Nz+1; ++z){
+      printf("%f, ", gh_fields->Ex[5+y*Nx+z*Ny*Nz]);
+    }
+    printf("\n");
+  }
   for(int y = 0; y < Ny; ++y){
     gh_fields->Ey[0  + y*Nx + 0 * Nx * Ny] = 0;
     gh_fields->Ey[(Nx+1) + y*Nx + 0 * Nx * Ny] = 0;
