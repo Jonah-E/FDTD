@@ -24,7 +24,7 @@ CC = gcc
 
 GIT_COMMIT := $(shell git rev-parse HEAD | cut -c 1-8)
 
-FLAGS += -I./inc
+FLAGS += -I./inc -g
 CCFLAGS +=  -DBUILD_VERSION="\"$(GIT_COMMIT)\""
 
 ifneq (, $(shell which bear))

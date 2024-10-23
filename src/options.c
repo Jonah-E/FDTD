@@ -10,6 +10,7 @@ static struct argp_option arguments[] = {
     {"", 'p', 0, 0, "Print options."},
     {"graph", 'g', 0, 0, "Execute graph version."},
     {"cpu", 'c', 0, 0, "Execute cpu version."},
+    {"timesteps", 't', "timesteps", 0, "The number of timesteps"},
     {0}};
 
 static void reset_options(struct options* opt)
@@ -40,6 +41,9 @@ static error_t parse_opt(int key, char* arg, struct argp_state* state)
     break;
   case 'c':
     opt->run_cpu = true;
+    break;
+  case 't':
+    opt->timesteps = atoi(arg);
     break;
   case ARGP_KEY_ARG:
     return 0;
