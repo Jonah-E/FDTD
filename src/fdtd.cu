@@ -22,6 +22,9 @@ int main(int argc, char* argv[])
   if (opts.print_options)
     print_options(&opts);
 
+  if (opts.print_header)
+    print_header();
+
   return_status = run(&opts);
 
   return 0;
@@ -44,9 +47,11 @@ int run(const struct options *opt) {
   d_fields = device_setup(h_fields);
 
   if (opt->run_cpu) {
-    cpu_kernel_run(h_fields, opt->timesteps, 1);
+    printf("Running CPU version\n");
+    cpu_kernel_run(h_fields, opt->timesteps, opt->sampling);
   }
 
+  printf("Running %s version\n", opt->run_graph ? "Graph" : "Baseline");
   time_start[1] = getCpuSeconds();
 
   if (opt->run_graph) {

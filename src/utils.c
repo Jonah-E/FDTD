@@ -35,19 +35,35 @@ double getCpuSeconds(void) {
 }
 
 
-/* Times header:
-*   build, mode, threads, launches, nodes, iterations, total, cuda_diff, graph_creation, total_launch, exec, results
-*
-  */
+const char *time_categories_string[] = {
+  "total_time",
+  "cuda_diff_time",
+};
+
+void print_header() {
+  printf("tag,build,mode,timesteps,it_batch_size,Nx,Ny,Nz,Lx,Ly,Lz");
+  for(unsigned int i = 0; i < TOTAL_NR_TIMES; ++i){
+    printf(",%s", time_categories_string[i]);
+  }
+}
+
 void print_times(const struct options *opt, double *times, unsigned int len,
                  DataType results) {
-  int mode = 0;
-  if (opt->run_graph) {
-    mode = 1;
-  } else if (opt->run_cpu) {
-    mode = -1;
-  }
-  printf("%s, %d, %d ", BUILD_VERSION, mode, opt->timesteps);
+  printf("gpu,%s, ", BUILD_VERSION);
+
+  // Print the options
+  printf("%s, %d, %d, %d, %d, %d, %e, %e, %e, ",
+          opt->run_graph ? "graph" : "nograph",
+          opt->timesteps,
+          opt->it_batch_size,
+          opt->Nx,
+          opt->Ny,
+          opt->Nz,
+          opt->Lx,
+          opt->Ly,
+          opt->Lz
+         );
+
   for (unsigned int i = 0; i < len; ++i) {
     printf(", %lf", times[i]);
   }

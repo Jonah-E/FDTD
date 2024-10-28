@@ -14,10 +14,12 @@ struct options {
   DataType Lx,Ly,Lz;
   int timesteps;
   int it_batch_size;
+  int sampling;
   unsigned int seed;
   bool run_graph;
   bool run_cpu;
   bool print_options;
+  bool print_header;
 };
 
 int parse_arguments(struct options*, int, char**);

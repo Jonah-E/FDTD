@@ -8,14 +8,12 @@ extern "C" {
 
 
 enum time_categories {
-  TOTAL_TIME,
+  TOTAL_TIME = 0,
   CUDA_DIFF_TIME,
-  GRAPH_CREATION,
-  TOTAL_LAUNCH_COST,
-  EXEC_TIME,
+  LAST_TIME, //Placholder for calculation below, do not use
 };
 
-#define TOTAL_NR_TIMES (1 + EXEC_TIME - TOTAL_TIME)
+#define TOTAL_NR_TIMES (LAST_TIME - TOTAL_TIME)
 
 void reset_times(double *time_elapsed);
 
@@ -24,6 +22,9 @@ void generateRandVector(DataType* v, int v_len, DataType min, DataType max, unsi
 
 /*Get the current CPU time in seconds as a double.*/
 double getCpuSeconds(void);
+
+/* Print the header for the time data to std.*/
+void print_header();
 
 /* Print time data to std.*/
 void print_times(const struct options* opt, double* times, unsigned int len, DataType results);
