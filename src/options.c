@@ -43,9 +43,9 @@ static void reset_options(struct options* opt)
   opt->Nx = 25;
   opt->Ny = 20;
   opt->Nz = 15;
-  opt->Lx = 5.0;
-  opt->Ly = 4.0;
-  opt->Lz = 3.0;
+  opt->Lx = 0.05;
+  opt->Ly = 0.04;
+  opt->Lz = 0.03;
   opt->timesteps = 8000;
   opt->it_batch_size = 100;
   opt->sampling = 0;

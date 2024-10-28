@@ -22,8 +22,10 @@ int main(int argc, char* argv[])
   if (opts.print_options)
     print_options(&opts);
 
-  if (opts.print_header)
+  if (opts.print_header){
     print_header();
+    return 0;
+  }
 
   return_status = run(&opts);
 

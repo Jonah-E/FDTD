@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+NR_CELLS="25 50 100 200 300"
+
+LOOPS=$(seq 1 10)
+
+TIMESTEPS=$(seq 100 100 4000)
+
+OUTPUT_FILE="output_kernels_increase_it$1.txt"
+./fdtd -h > $OUTPUT_FILE
+for N in $NR_CELLS;
+do
+  SIZE=$(bc -l <<< "0.002 * $N")
+  for T in $TIMESTEPS;
+  do
+    for L in $LOOPS
+    do
+      ./fdtd -t $T --Nx=$N --Ny=$N --Nz=10 \
+              --Lx=$SIZE --Ly=$SIZE | grep "gpu" | tee -a $OUTPUT_FILE
+    done
+  done
+done
+
+OUTPUT_FILE="output_graph_increase_it$1.txt"
+./fdtd -h > $OUTPUT_FILE
+for N in $NR_CELLS;
+do
+  SIZE=$(bc -l <<< "0.002 * $N")
+  for T in $TIMESTEPS;
+  do
+    for L in $LOOPS
+    do
+      ./fdtd -t $T --Nx=$N --Ny=$N --Nz=10 \
+              --Lx=$SIZE --Ly=$SIZE \
+              --graph | grep "gpu" | tee -a $OUTPUT_FILE
+    done
+  done
+done
