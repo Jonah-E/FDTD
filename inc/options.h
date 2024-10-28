@@ -13,6 +13,7 @@ struct options {
   int Nx,Ny,Nz;
   DataType Lx,Ly,Lz;
   int timesteps;
+  int it_batch_size;
   unsigned int seed;
   bool run_graph;
   bool run_cpu;

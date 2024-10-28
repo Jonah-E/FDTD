@@ -21,7 +21,8 @@ static void reset_options(struct options* opt)
   opt->Lx = .05;
   opt->Ly = .04;
   opt->Lz = .03;
-  opt->timesteps = 8192;
+  opt->timesteps = 8000;
+  opt->it_batch_size = 100;
   opt->run_graph = false;
   opt->run_cpu = false;
   opt->print_options = false;

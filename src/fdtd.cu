@@ -50,21 +50,12 @@ int run(const struct options *opt) {
   time_start[1] = getCpuSeconds();
 
   if (opt->run_graph) {
-    //device_error = device_graph_setup(opt, &d_vector);
-      //device_graph_run(opt);
+    device_graph_setup(opt, d_fields);
+    device_graph_run(opt);
   } else {
     device_kernel_run(d_fields, opt->timesteps);
   }
   time_elapsed[CUDA_DIFF_TIME] = getCpuSeconds() - time_start[1];
-
-
-    /* teardown device resources. */
-    /*
-    device_teardown();
-    if (opt->run_graph) {
-      device_graph_teardown();
-    }
-    */
 
   fields_t *r_fields;
   r_fields = host_setup(opt->Nx, opt->Ny, opt->Nz,
@@ -79,7 +70,12 @@ int run(const struct options *opt) {
   /* teardown host resources. */
   host_teardown(h_fields);
   host_teardown(r_fields);
+
+  /* teardown device resources. */
   device_teardown();
+  if (opt->run_graph) {
+    device_graph_teardown();
+  }
 
   time_elapsed[TOTAL_TIME] = getCpuSeconds() - time_start[0];
 

@@ -13,6 +13,12 @@ int device_kernel_run(fields_t *d_fields, int timesteps);
 
 void device_get_fields(fields_t *h_fields, fields_t *d_fields);
 
+cudaError_t device_graph_setup(const struct options *opt, fields_t *d_fields);
+
+cudaError_t device_graph_run(const struct options *opt);
+
+void device_graph_teardown(void);
+
 void device_teardown(void);
 
 #ifdef __cplusplus

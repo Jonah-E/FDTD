@@ -1,7 +1,6 @@
 #include "device.h"
 #include "em.h"
-#include "host.h"
-#include "utils.h"
+#include <cassert>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,7 +15,94 @@ inline void checkErrorCuda(cudaError_t code, const char *file, int line) {
   }
 }
 
-#include "simple-kernel.cu"
+__global__ void update_hfields(fields_t fields)
+{
+  const int idx = threadIdx.x + blockDim.x * blockIdx.x;
+  const int idy = threadIdx.y + blockDim.y * blockIdx.y;
+  const int idz = threadIdx.z + blockDim.z * blockIdx.z;
+
+  /*Extract values for clarity*/
+  const int Nx = fields.Nx;
+  const int Ny = fields.Ny;
+  const int Nz = fields.Nz;
+
+  const DataType dx = fields.dx;
+  const DataType dy = fields.dy;
+  const DataType dz = fields.dz;
+
+  const DataType dt = fields.dt;
+
+  DataType *Hx = fields.Hx;
+  DataType *Hy = fields.Hy;
+  DataType *Hz = fields.Hz;
+
+  DataType *Ex = fields.Ex;
+  DataType *Ey = fields.Ey;
+  DataType *Ez = fields.Ez;
+
+  if (idx < Nx+1 && idy < Ny && idz < Nz) {
+    Hx[idx + idy*(Nx+1) + idz*Ny*(Nx+1)] += (dt/MU0) * (
+      (Ey[idx + idy*(Nx+1) + (idz+1)*Ny*(Nx+1)] -Ey[idx + idy*(Nx+1) + idz*Ny*(Nx+1)])/dz -
+      (Ez[idx + (idy+1)*(Nx+1) + idz*(Ny+1)*(Nx+1)]-Ez[idx + idy*(Nx+1) + idz*(Ny+1)*(Nx+1)])/dy);
+  }
+
+
+  if (idx<Nx && idy < Ny+1 && idz < Nz){
+    Hy[idx + idy*Nx + idz*(Ny+1)*Nx] += (dt/MU0) * (
+      (Ez[(idx+1) + idy*(Nx+1) + idz*(Ny+1)*(Nx+1)]-Ez[idx + idy*(Nx+1) + idz*(Ny+1)*(Nx+1)])/dx -
+      (Ex[idx + idy*Nx + (idz+1)*(Ny+1)*Nx]-Ex[idx + idy*Nx + idz*(Ny+1)*Nx])/dz);
+  }
+
+  if (idx<Nx && idy < Ny && idz < Nz+1){
+    Hz[idx + idy*Nx + idz*Ny*Nx] += (dt/MU0) * (
+      (Ex[idx + (idy+1)*Nx + idz*(Ny+1)*Nx]-Ex[idx + idy*Nx + idz*(Ny+1)*Nx])/dy -
+      (Ey[(idx+1) + idy*(Nx+1) + idz*Ny*(Nx+1)]-Ey[idx + idy*(Nx+1) + idz*Ny*(Nx+1)])/dx);
+  }
+}
+
+__global__ void update_efields(fields_t fields)
+{
+  const int idx = threadIdx.x + blockDim.x * blockIdx.x;
+  const int idy = threadIdx.y + blockDim.y * blockIdx.y;
+  const int idz = threadIdx.z + blockDim.z * blockIdx.z;
+
+  /*Extract values for clearaty*/
+  const int Nx = fields.Nx;
+  const int Ny = fields.Ny;
+  const int Nz = fields.Nz;
+
+  const DataType dx = fields.dx;
+  const DataType dy = fields.dy;
+  const DataType dz = fields.dz;
+
+  const DataType dt = fields.dt;
+
+  DataType *Hx = fields.Hx;
+  DataType *Hy = fields.Hy;
+  DataType *Hz = fields.Hz;
+
+  DataType *Ex = fields.Ex;
+  DataType *Ey = fields.Ey;
+  DataType *Ez = fields.Ez;
+
+  if (idx < Nx && idy < Ny && idz < Nz) {
+    if (idy>0 && idz>0){
+      Ex[idx + idy*Nx + idz*(Ny+1)*Nx] += (dt/EPS0) * (
+          (Hz[idx+idy*Nx+idz*Ny*Nx]-Hz[idx+(idy-1)*Nx+idz*Ny*Nx])/dy -
+          (Hy[idx+idy*Nx+idz*(Ny+1)*Nx]-Hy[idx+idy*Nx+(idz-1)*(Ny+1)*Nx])/dz);
+    }
+    if(idx>0 && idz>0){
+      Ey[idx + idy*(Nx+1) + idz*Ny*(Nx+1)] += (dt/EPS0) * (
+          (Hx[idx+idy*(Nx+1)+idz*Ny*(Nx+1)]-Hx[idx+idy*(Nx+1)+(idz-1)*Ny*(Nx+1)])/dz -
+          (Hz[idx+idy*Nx+idz*Ny*Nx]-Hz[(idx-1)+idy*Nx+idz*Ny*Nx])/dx);
+    }
+    if(idx>0 && idy>0){
+      Ez[idx + idy*(Nx+1) + idz*(Ny+1)*(Nx+1)] += (dt/EPS0) * (
+          (Hy[idx+idy*Nx+idz*(Ny+1)*Nx]-Hy[(idx-1)+idy*Nx+idz*(Ny+1)*Nx])/dx -
+          (Hx[idx+idy*(Nx+1)+idz*Ny*(Nx+1)]-Hx[idx+(idy-1)*(Nx+1)+idz*Ny*(Nx+1)])/dy);
+    }
+  }
+}
 
 static fields_t gd_fields;
 fields_t *device_setup(fields_t *h_fields) {
@@ -84,11 +170,6 @@ int device_kernel_run(fields_t *d_fields, int timesteps) {
     ((d_fields->Ny + 1 + TPB_Y - 1) / TPB_Y),
     ((d_fields->Nz + 1 + TPB_Z - 1) / TPB_Z));
 
-
-#ifdef TIME_DETAILED
-  double time_start;
-  time_start = getCpuSeconds();
-#endif
   for (unsigned int t = 0; t < timesteps; ++t) {
     update_hfields<<<grid,block>>>(*d_fields);
     checkCudaErrors(cudaGetLastError());
@@ -96,13 +177,7 @@ int device_kernel_run(fields_t *d_fields, int timesteps) {
     checkCudaErrors(cudaGetLastError());
   }
 
-#ifdef TIME_DETAILED
-  time_elapsed[TOTAL_LAUNCH_COST] = getCpuSeconds() - time_start;
-#endif
   cudaDeviceSynchronize();
-#ifdef TIME_DETAILED
-  time_elapsed[EXEC_TIME] = getCpuSeconds() - time_start;
-#endif
   return 0;
 }
 
@@ -140,95 +215,77 @@ void device_get_fields(fields_t *h_fields, fields_t *d_fields){
 }
 
 static cudaGraph_t g_main_graph;
-static cudaGraphNode_t *g_nodes;
 static cudaGraphExec_t g_exec_work_graph;
 static cudaStream_t g_stream_for_cuda_graph;
 
-cudaError_t device_graph_setup(const struct options *opt, DataType **d_vector) {
-#ifdef TIME_DETAILED
-  double time_start = getCpuSeconds();
-#endif
-  /*
-  device_error = cudaGraphCreate(&g_main_graph, 0);
-  if (cudaSuccess != device_error) {
-    printCudaError(device_error);
-    return device_error;
-  }
+cudaError_t device_graph_setup(const struct options *opt, fields_t *d_fields) {
 
-  dim3 block(TPB);
-  dim3 grid((opt->number_of_threads + TPB - 1) / TPB);
+  assert(((opt->timesteps%opt->it_batch_size)==0) &&
+         "Timestep have to be a mulitple of iteration batch size");
 
-  void *ka_kernel[] = {(void *)d_vector, (void *)&opt->number_of_threads,
-                       (void *)&opt->inner_iterations};
-  cudaKernelNodeParams np_kernel = {0};
-  np_kernel.func = (void *)vectorIterMult;
-  np_kernel.gridDim = grid;
-  np_kernel.blockDim = block;
-  np_kernel.kernelParams = ka_kernel;
+  checkCudaErrors(cudaGraphCreate(&g_main_graph, 0));
 
-  cudaGraphNode_t *last_node = NULL;
+  /*Total threads needs to be 1 more than Nx/Ny/Nz*/
+  dim3 block(TPB_X,TPB_Y,TPB_Z);
+  dim3 grid(
+    ((d_fields->Nx + 1 + TPB_X - 1) / TPB_X),
+    ((d_fields->Ny + 1 + TPB_Y - 1) / TPB_Y),
+    ((d_fields->Nz + 1 + TPB_Z - 1) / TPB_Z));
+
+  /* H-fields kernel node*/
+  void *ka_kernel_h[] = {(void *)d_fields};
+  cudaKernelNodeParams np_kernel_h = {0};
+  np_kernel_h.func = (void *)update_hfields;
+  np_kernel_h.gridDim = grid;
+  np_kernel_h.blockDim = block;
+  np_kernel_h.kernelParams = ka_kernel_h;
+
+  /* E-fields kernel node*/
+  void *ka_kernel_e[] = {(void *)d_fields};
+  cudaKernelNodeParams np_kernel_e = {0};
+  np_kernel_e.func = (void *)update_efields;
+  np_kernel_e.gridDim = grid;
+  np_kernel_e.blockDim = block;
+  np_kernel_e.kernelParams = ka_kernel_e;
+
+  cudaGraphNode_t *last_node_p = NULL;
+  cudaGraphNode_t last_node, current_node;
   unsigned int num_dependencies = 0;
-  g_nodes = (cudaGraphNode_t *)malloc(opt->number_of_kernels *
-                                      sizeof(cudaGraphNode_t));
-  for (unsigned int i = 0; i < opt->number_of_kernels; ++i) {
-    device_error = cudaGraphAddKernelNode(&g_nodes[i], g_main_graph, last_node,
-                                          num_dependencies, &np_kernel);
 
-    if (cudaSuccess != device_error) {
-      printCudaError(device_error);
-      return device_error;
-    }
-    last_node = &g_nodes[i];
+  for (unsigned int i = 0; i < opt->it_batch_size; ++i) {
+    checkCudaErrors(cudaGraphAddKernelNode(&current_node, g_main_graph, last_node_p,
+                                          num_dependencies, &np_kernel_h));
+
+    last_node = current_node;
+    last_node_p = &last_node;
+    num_dependencies = 1;
+
+    checkCudaErrors(cudaGraphAddKernelNode(&current_node, g_main_graph, last_node_p,
+                                          num_dependencies, &np_kernel_e));
+
+    last_node = current_node;
+    last_node_p = &last_node;
     num_dependencies = 1;
   }
 
-  device_error = cudaGraphInstantiateWithFlags(&g_exec_work_graph, g_main_graph,
-                                      0);
-  if (cudaSuccess != device_error) {
-    printCudaError(device_error);
-    return device_error;
-  }
+  checkCudaErrors(cudaGraphInstantiateWithFlags(&g_exec_work_graph, g_main_graph, 0));
 
-  device_error = cudaStreamCreateWithFlags(&g_stream_for_cuda_graph,
-                                           cudaStreamNonBlocking);
-  if (cudaSuccess != device_error) {
-    printCudaError(device_error);
-    return device_error;
-  }
-  device_error = cudaGraphUpload(g_exec_work_graph, g_stream_for_cuda_graph);
-  if (cudaSuccess != device_error) {
-    printCudaError(device_error);
-    return device_error;
-  }
-#ifdef TIME_DETAILED
-  time_elapsed[GRAPH_CREATION] = getCpuSeconds() - time_start;
-#endif
-*/
+  checkCudaErrors(cudaStreamCreateWithFlags(&g_stream_for_cuda_graph,
+                                            cudaStreamNonBlocking));
+  checkCudaErrors(cudaGraphUpload(g_exec_work_graph, g_stream_for_cuda_graph));
+
   return cudaSuccess;
 }
 
 cudaError_t device_graph_run(const struct options *opt) {
-#ifdef TIME_DETAILED
-  double time_start;
-  time_start = getCpuSeconds();
-#endif
-  for (unsigned int i = 0; i < 10; ++i) {
+  // Timestep is checked in device_graph_setup(..)
+  int nr_graph_launches = opt->timesteps/opt->it_batch_size;
+
+  for (unsigned int i = 0; i < nr_graph_launches; ++i) {
     cudaGraphLaunch(g_exec_work_graph, g_stream_for_cuda_graph);
+    checkCudaErrors(cudaGetLastError());
   }
-#ifdef TIME_DETAILED
-  time_elapsed[TOTAL_LAUNCH_COST] = getCpuSeconds() - time_start;
-#endif
   cudaStreamSynchronize(g_stream_for_cuda_graph);
-#ifdef TIME_DETAILED
-  time_elapsed[EXEC_TIME] = getCpuSeconds() - time_start;
-#endif
-#ifdef MEM_CHECK
-#if defined(__HIP)
-  system("rocm-smi --showmeminfo vram");
-#else
-  system("nvidia-smi");
-#endif
-#endif
   return cudaSuccess;
 }
 
@@ -236,6 +293,5 @@ void device_graph_teardown(void) {
   cudaStreamDestroy(g_stream_for_cuda_graph);
   cudaGraphExecDestroy(g_exec_work_graph);
   cudaGraphDestroy(g_main_graph);
-  free(g_nodes);
 }
 
