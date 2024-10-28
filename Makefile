@@ -1,11 +1,7 @@
-ifdef USE_HIP
-NVCC = hipcc
-NVCCFLAGS += --offload-arch=gfx90a
-FLAGS += -D__HIP
-else
+CUDA_PATH = /usr/local/cuda
+
 NVCC = nvcc
-NVCCFLAGS += -I/usr/local/cuda/include -L/usr/local/cuda/lib
-endif
+NVCCFLAGS += -I$(CUDA_PATH)/include -L$(CUDA_PATH)/lib
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -35,19 +31,10 @@ endif
 
 $(shell mkdir -p $(OBJ_DIR) $(BIN_DIR))
 
-all:
-	$(BEAR) make fdtd
+all: fdtd
 
-.PHONY: clean fdtd time_detailed mem_check help
-
-help:
-	@echo "To compile for HIP, run `make USE_HIP=1`"
-
-time_detailed: NVCCFLAGS+=-DTIME_DETAILED=1
-time_detailed: fdtd
-
-mem_check: NVCCFLAGS+=-DMEM_CHECK=1
-mem_check: fdtd
+bear:
+	$(BEAR) make -B fdtd
 
 fdtd: $(OBJ_PATHS)
 	echo $(OBJ_PATHS)
@@ -56,10 +43,10 @@ fdtd: $(OBJ_PATHS)
 $(OBJ_DIR)/%_c.o: $(SRC_DIR)/%.c
 	$(CC) $(CCFLAGS) $(FLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%_cu.o: $(SRC_DIR)/%.cu FORCE
+$(OBJ_DIR)/%_cu.o: $(SRC_DIR)/%.cu
 	$(NVCC) $(NVCCFLAGS) $(FLAGS) -c $< -o $@
 
-FORCE:
+.PHONY: clean
 
 clean:
 	rm fdtd **/*.o
