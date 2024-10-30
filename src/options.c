@@ -22,14 +22,16 @@ const char* argp_program_version = BUILD_VERSION;
 static char doc[] = "";
 static char args_doc[] = "";
 static struct argp_option arguments[] = {
-    {NULL,    OPT_PRINT, 0, 0, "Print options."},
-    {NULL,    OPT_PRINT_HEADER, 0, 0, "Print csv header."},
+    {NULL, OPT_PRINT, 0, 0, "Print options."},
+    {NULL, OPT_PRINT_HEADER, 0, 0, "Print csv header."},
     {"graph", OPT_GRAPH, 0, 0, "Execute graph version."},
-    {"cpu",   OPT_CPU  , 0, 0, "Execute the reference cpu version (and compare.)"},
+    {"cpu", OPT_CPU, 0, 0, "Execute the reference cpu version (and compare.)"},
     {"timesteps", OPT_TIMESTEP, "timesteps", 0,
-      "The number of timesteps, have to be a multiple of it_batch_size."},
-    {"it_batch", OPT_IT_BATCH, "it_batch_size", 0, "Set the size of the iteration batch."},
-    {"sampling", OPT_SAMPLING, "sampling", 0, "How often to sample the reference (cpu) version."},
+     "The number of timesteps, have to be a multiple of it_batch_size."},
+    {"it_batch", OPT_IT_BATCH, "it_batch_size", 0,
+     "Set the size of the iteration batch."},
+    {"sampling", OPT_SAMPLING, "sampling", 0,
+     "How often to sample the reference (cpu) version."},
     {"Nx", OPT_NX, "Nx", 0, "Number of cells in the x direction."},
     {"Ny", OPT_NY, "Ny", 0, "Number of cells in the y direction."},
     {"Nz", OPT_NZ, "Nz", 0, "Number of cells in the z direction."},
@@ -84,22 +86,22 @@ static error_t parse_opt(int key, char* arg, struct argp_state* state)
     opt->sampling = atoi(arg);
     break;
   case OPT_NX:
-      opt->Nx = atoi(arg);
+    opt->Nx = atoi(arg);
     break;
   case OPT_NY:
-      opt->Ny = atoi(arg);
+    opt->Ny = atoi(arg);
     break;
   case OPT_NZ:
-      opt->Nz = atoi(arg);
+    opt->Nz = atoi(arg);
     break;
   case OPT_LX:
-      opt->Lx = atof(arg);
+    opt->Lx = atof(arg);
     break;
   case OPT_LY:
-      opt->Ly = atof(arg);
+    opt->Ly = atof(arg);
     break;
   case OPT_LZ:
-      opt->Lz = atof(arg);
+    opt->Lz = atof(arg);
     break;
   case ARGP_KEY_ARG:
     break;
@@ -124,17 +126,9 @@ void print_options(const struct options* opt)
          "\tLx = %e\n"
          "\tLy = %e\n"
          "\tLz = %e\n",
-          opt->run_graph ? "True" : "False",
-          opt->run_cpu ? "True" : "False",
-          opt->timesteps,
-          opt->it_batch_size,
-          opt->Nx,
-          opt->Ny,
-          opt->Nz,
-          opt->Lx,
-          opt->Ly,
-          opt->Lz
-         );
+         opt->run_graph ? "True" : "False", opt->run_cpu ? "True" : "False",
+         opt->timesteps, opt->it_batch_size, opt->Nx, opt->Ny, opt->Nz, opt->Lx,
+         opt->Ly, opt->Lz);
 }
 
 int parse_arguments(struct options* opt, int argc, char* argv[])

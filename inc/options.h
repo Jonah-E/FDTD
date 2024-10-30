@@ -10,8 +10,8 @@ extern "C" {
 #define DataType double
 
 struct options {
-  int Nx,Ny,Nz;
-  DataType Lx,Ly,Lz;
+  int Nx, Ny, Nz;
+  DataType Lx, Ly, Lz;
   int timesteps;
   int it_batch_size;
   int sampling;

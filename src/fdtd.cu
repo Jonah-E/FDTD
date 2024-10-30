@@ -1,13 +1,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "options.h"
 #include "device.h"
-#include "utils.h"
-#include "host.h"
 #include "em.h"
+#include "host.h"
+#include "options.h"
+#include "utils.h"
 
-int run(const struct options *opt);
+int run(const struct options* opt);
 
 int main(int argc, char* argv[])
 {
@@ -15,14 +15,14 @@ int main(int argc, char* argv[])
   int return_status;
 
   return_status = parse_arguments(&opts, argc, argv);
-  if(0 != return_status){
+  if (0 != return_status) {
     printf("Error parsing arguments.\n");
     return -1;
   }
   if (opts.print_options)
     print_options(&opts);
 
-  if (opts.print_header){
+  if (opts.print_header) {
     print_header();
     return 0;
   }
@@ -34,18 +34,18 @@ int main(int argc, char* argv[])
 
 static double time_elapsed[TOTAL_NR_TIMES];
 
-int run(const struct options *opt) {
-  double time_start[2] = {0,0};
+int run(const struct options* opt)
+{
+  double time_start[2] = {0, 0};
   reset_times(time_elapsed);
   time_start[0] = getCpuSeconds();
 
   /* Generate host data. */
-  fields_t *h_fields;
-  h_fields = host_setup(opt->Nx, opt->Ny, opt->Nz,
-                        opt->Lx, opt->Ly, opt->Lz,
+  fields_t* h_fields;
+  h_fields = host_setup(opt->Nx, opt->Ny, opt->Nz, opt->Lx, opt->Ly, opt->Lz,
                         opt->seed, true);
 
-  fields_t *d_fields;
+  fields_t* d_fields;
   d_fields = device_setup(h_fields);
 
   if (opt->run_cpu) {
@@ -64,14 +64,13 @@ int run(const struct options *opt) {
   }
   time_elapsed[CUDA_DIFF_TIME] = getCpuSeconds() - time_start[1];
 
-  fields_t *r_fields;
-  r_fields = host_setup(opt->Nx, opt->Ny, opt->Nz,
-                        opt->Lx, opt->Ly, opt->Lz,
+  fields_t* r_fields;
+  r_fields = host_setup(opt->Nx, opt->Ny, opt->Nz, opt->Lx, opt->Ly, opt->Lz,
                         opt->seed, false);
-  device_get_fields(r_fields,d_fields);
+  device_get_fields(r_fields, d_fields);
 
-  if(opt->run_cpu){
-    compaire_fields(h_fields,r_fields, 0.0000001);
+  if (opt->run_cpu) {
+    compaire_fields(h_fields, r_fields, 0.0000001);
   }
 
   /* teardown host resources. */
