@@ -1,4 +1,4 @@
-CUDA_PATH = /usr/local/cuda
+CUDA_PATH ?= /usr/local/cuda
 
 NVCC = nvcc
 NVCCFLAGS += -I$(CUDA_PATH)/include -L$(CUDA_PATH)/lib
@@ -50,5 +50,4 @@ $(OBJ_DIR)/%_cu.o: $(SRC_DIR)/%.cu
 
 clean:
 	rm fdtd **/*.o
-
 
