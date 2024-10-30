@@ -52,7 +52,7 @@ void print_times(const struct options *opt, double *times, unsigned int len) {
   printf("gpu,%s, ", BUILD_VERSION);
 
   // Print the options
-  printf("%s, %d, %d, %d, %d, %d, %e, %e, %e, ",
+  printf("%s, %d, %d, %d, %d, %d, %e, %e, %e",
           opt->run_graph ? "graph" : "nograph",
           opt->timesteps,
           opt->it_batch_size,
