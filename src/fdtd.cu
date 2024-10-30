@@ -86,6 +86,6 @@ int run(const struct options *opt) {
 
   time_elapsed[TOTAL_TIME] = getCpuSeconds() - time_start[0];
 
-  print_times(opt, time_elapsed, TOTAL_NR_TIMES, 0);
+  print_times(opt, time_elapsed, TOTAL_NR_TIMES);
   return 0;
 }

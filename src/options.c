@@ -25,7 +25,7 @@ static struct argp_option arguments[] = {
     {NULL,    OPT_PRINT, 0, 0, "Print options."},
     {NULL,    OPT_PRINT_HEADER, 0, 0, "Print csv header."},
     {"graph", OPT_GRAPH, 0, 0, "Execute graph version."},
-    {"cpu",   OPT_CPU  , 0, 0, "Execute cpu version."},
+    {"cpu",   OPT_CPU  , 0, 0, "Execute the reference cpu version (and compare.)"},
     {"timesteps", OPT_TIMESTEP, "timesteps", 0,
       "The number of timesteps, have to be a multiple of it_batch_size."},
     {"it_batch", OPT_IT_BATCH, "it_batch_size", 0, "Set the size of the iteration batch."},

@@ -41,14 +41,14 @@ const char *time_categories_string[] = {
 };
 
 void print_header() {
-  printf("tag,build,mode,timesteps,it_batch_size,Nx,Ny,Nz,Lx,Ly,Lz\n");
+  printf("tag,build,mode,timesteps,it_batch_size,Nx,Ny,Nz,Lx,Ly,Lz");
   for(unsigned int i = 0; i < TOTAL_NR_TIMES; ++i){
     printf(",%s", time_categories_string[i]);
   }
+  printf("\n");
 }
 
-void print_times(const struct options *opt, double *times, unsigned int len,
-                 DataType results) {
+void print_times(const struct options *opt, double *times, unsigned int len) {
   printf("gpu,%s, ", BUILD_VERSION);
 
   // Print the options
@@ -67,7 +67,7 @@ void print_times(const struct options *opt, double *times, unsigned int len,
   for (unsigned int i = 0; i < len; ++i) {
     printf(", %lf", times[i]);
   }
-  printf(", %lf\n", results);
+  printf("\n");
 }
 
 void reset_times(double *time_elapsed) {

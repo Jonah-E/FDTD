@@ -27,7 +27,7 @@ double getCpuSeconds(void);
 void print_header();
 
 /* Print time data to std.*/
-void print_times(const struct options* opt, double* times, unsigned int len, DataType results);
+void print_times(const struct options* opt, double* times, unsigned int len);
 
 DataType euclicianNormVector(DataType *vectorA, unsigned int length);
 #ifdef __cplusplus
